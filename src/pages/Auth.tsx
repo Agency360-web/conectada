@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Logo } from "@/components/Logo";
 import { Loader2 } from "lucide-react";
 
 const emailSchema = z.string().trim().email("Email inválido").max(255);
@@ -84,8 +83,7 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-subtle px-4">
       <div className="w-full max-w-md animate-fade-in">
         <div className="flex items-center justify-center gap-2 mb-6">
-          <Logo size={40} />
-          <span className="font-display text-2xl font-bold text-foreground">Conecta</span>
+          <img src="/logo-conecta.png" alt="Conecta Logo" className="h-12 w-auto" />
         </div>
 
         <Card className="shadow-elegant border-border/60">

@@ -7,7 +7,6 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Logo } from "./Logo";
 
 const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -35,8 +34,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b">
         <div className="flex items-center gap-2 px-2 py-2">
-          <Logo size={24} />
-          {!collapsed && <span className="font-display text-lg font-bold">Conecta</span>}
+          <img src="/logo-conecta.png" alt="Conecta Logo" className="h-8 w-auto" />
         </div>
       </SidebarHeader>
 
