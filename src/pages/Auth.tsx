@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Wallet, Loader2 } from "lucide-react";
+import { Logo } from "@/components/Logo";
+import { Loader2 } from "lucide-react";
 
 const emailSchema = z.string().trim().email("Email inválido").max(255);
 const passwordSchema = z.string().min(8, "Mínimo 8 caracteres").max(72);
@@ -83,16 +84,14 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-subtle px-4">
       <div className="w-full max-w-md animate-fade-in">
         <div className="flex items-center justify-center gap-2 mb-6">
-          <div className="h-10 w-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-elegant">
-            <Wallet className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <span className="font-display text-2xl font-bold text-foreground">Finanza</span>
+          <Logo size={40} />
+          <span className="font-display text-2xl font-bold text-foreground">Conecta</span>
         </div>
 
         <Card className="shadow-elegant border-border/60">
           <CardHeader className="space-y-1">
             <CardTitle className="text-xl font-display">Acesso interno</CardTitle>
-            <CardDescription>Sistema de gestão financeira da agência</CardDescription>
+            <CardDescription>Conecta — Assessoria de Marketing</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login">

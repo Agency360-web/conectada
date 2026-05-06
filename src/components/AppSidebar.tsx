@@ -7,6 +7,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Logo } from "./Logo";
 
 const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -34,10 +35,8 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b">
         <div className="flex items-center gap-2 px-2 py-2">
-          <div className="h-8 w-8 rounded-lg bg-gradient-primary flex items-center justify-center shadow-card flex-shrink-0">
-            <Wallet className="h-4 w-4 text-primary-foreground" />
-          </div>
-          {!collapsed && <span className="font-display text-lg font-bold">Finanza</span>}
+          <Logo size={24} />
+          {!collapsed && <span className="font-display text-lg font-bold">Conecta</span>}
         </div>
       </SidebarHeader>
 
