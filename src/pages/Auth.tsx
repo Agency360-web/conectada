@@ -82,8 +82,8 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-subtle px-4">
       <div className="w-full max-w-md animate-fade-in">
-        <div className="flex items-center justify-center gap-2 mb-6">
-          <img src="/logo-conecta.png" alt="Conecta Logo" className="h-12 w-auto" />
+        <div className="flex items-center justify-center gap-2 mb-10">
+          <img src="/logo-conecta.png" alt="Conecta Logo" className="h-20 w-auto object-contain" />
         </div>
 
         <Card className="shadow-elegant border-border/60">

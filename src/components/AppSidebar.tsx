@@ -33,8 +33,8 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b">
-        <div className="flex items-center gap-2 px-2 py-2">
-          <img src="/logo-conecta.png" alt="Conecta Logo" className="h-8 w-auto" />
+        <div className="flex items-center gap-2 px-3 py-4">
+          <img src="/logo-conecta.png" alt="Conecta Logo" className="h-10 w-auto object-contain" />
         </div>
       </SidebarHeader>
 
