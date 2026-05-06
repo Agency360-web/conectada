@@ -1,34 +1,59 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Wallet, Settings, LogOut, Receipt, Repeat, FileBarChart, Shield, ClipboardList, FolderKanban, ChevronLeft } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  LayoutDashboard, Users, Wallet, Settings, LogOut, FileBarChart,
+  Shield, ClipboardList, FolderKanban, ChevronLeft, ChevronRight, Briefcase
+} from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
-  SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar, SidebarTrigger,
+  SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter,
+  useSidebar, SidebarTrigger, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton
 } from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-
-const items = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Clientes", url: "/clientes", icon: Users },
-  { title: "Financeiro", url: "/financeiro", icon: Wallet },
-  { title: "Projetos", url: "/departamentos", icon: FolderKanban },
-  { title: "Relatórios", url: "/relatorios", icon: FileBarChart },
-  { title: "Usuários", url: "/usuarios", icon: Shield, adminOnly: true },
-  { title: "Atividades", url: "/atividades", icon: ClipboardList, adminOnly: true },
-  { title: "Configurações", url: "/configuracoes", icon: Settings },
-];
+import { supabase } from "@/integrations/supabase/client";
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { pathname } = useLocation();
-  const { user, signOut, roles } = useAuth();
+  const { user, signOut, roles, isAdmin, isFinanceiro, isCriacao, isMembro } = useAuth();
 
   const isActive = (url: string) => (url === "/" ? pathname === "/" : pathname.startsWith(url));
 
   const initials = (user?.user_metadata?.name || user?.email || "U")
     .split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase();
+
+  const showDashboard = isAdmin || isFinanceiro;
+  const showAdminFinance = isAdmin || isFinanceiro;
+  const showDepartments = isAdmin || isCriacao || isMembro;
+  const showSystemMgmt = isAdmin;
+
+  const [criacaoId, setCriacaoId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    if (isAdmin) {
+      // Admin: busca qualquer departamento (primeiro disponível)
+      supabase
+        .from("departments")
+        .select("id")
+        .limit(1)
+        .single()
+        .then(({ data }) => { if (data) setCriacaoId(data.id); });
+    } else {
+      // Criacao/Designer/Membro: busca o departamento que o usuário pertence
+      supabase
+        .from("department_members")
+        .select("department_id")
+        .eq("user_id", user.id)
+        .limit(1)
+        .single()
+        .then(({ data }) => { if (data) setCriacaoId(data.department_id); });
+    }
+  }, [user, isAdmin]);
 
   return (
     <Sidebar collapsible="icon">
@@ -41,24 +66,154 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navegação</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.filter(item => !item.adminOnly || roles.includes("admin")).map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                    <NavLink to={item.url} end={item.url === "/"}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
+      <SidebarContent className="gap-1">
+        {showDashboard && (
+          <SidebarGroup className="py-0">
+            <SidebarGroupLabel className="text-sm font-semibold">Visão Geral</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/")} tooltip="Dashboard" size="sm" className="text-sm">
+                    <NavLink to="/">
+                      <LayoutDashboard className="h-4 w-4" />
+                      <span>Dashboard</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {showAdminFinance && (
+          <Collapsible defaultOpen className="group/collapsible">
+            <SidebarGroup className="py-0">
+              <SidebarGroupLabel asChild className="text-sm font-semibold">
+                <CollapsibleTrigger className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex w-full items-center justify-between cursor-pointer">
+                  Administrativo & Financeiro
+                  <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                </CollapsibleTrigger>
+              </SidebarGroupLabel>
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={isActive("/clientes")} tooltip="Clientes" size="sm" className="text-sm">
+                        <NavLink to="/clientes">
+                          <Users className="h-4 w-4" />
+                          <span>Clientes</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={isActive("/financeiro")} tooltip="Financeiro" size="sm" className="text-sm">
+                        <NavLink to="/financeiro">
+                          <Wallet className="h-4 w-4" />
+                          <span>Financeiro</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={isActive("/relatorios")} tooltip="Relatórios" size="sm" className="text-sm">
+                        <NavLink to="/relatorios">
+                          <FileBarChart className="h-4 w-4" />
+                          <span>Relatórios</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </SidebarGroup>
+          </Collapsible>
+        )}
+
+        {showDepartments && (
+          <Collapsible defaultOpen className="group/collapsible">
+            <SidebarGroup className="py-0">
+              <SidebarGroupLabel asChild className="text-sm font-semibold">
+                <CollapsibleTrigger className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex w-full items-center justify-between cursor-pointer">
+                  <span
+                    onClick={(e) => {
+                      if (isAdmin) {
+                        e.stopPropagation();
+                        window.location.href = '/departamentos';
+                      }
+                    }}
+                    className={isAdmin ? "hover:underline cursor-pointer" : ""}
+                    title={isAdmin ? "Gerenciar departamentos" : undefined}
+                  >
+                    Departamentos / Operação
+                  </span>
+                  <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                </CollapsibleTrigger>
+              </SidebarGroupLabel>
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive("/departamentos") && pathname.includes("/board")}
+                        tooltip="Criativo"
+                        size="sm"
+                        className="text-sm"
+                      >
+                        <NavLink to={criacaoId ? `/departamentos/${criacaoId}/board` : "/departamentos"}>
+                          <FolderKanban className="h-4 w-4" />
+                          <span>Criativo</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </SidebarGroup>
+          </Collapsible>
+        )}
+
+        {showSystemMgmt && (
+          <Collapsible defaultOpen className="group/collapsible">
+            <SidebarGroup className="py-0">
+              <SidebarGroupLabel asChild className="text-sm font-semibold">
+                <CollapsibleTrigger className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex w-full items-center justify-between cursor-pointer">
+                  Gestão do Sistema
+                  <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                </CollapsibleTrigger>
+              </SidebarGroupLabel>
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={isActive("/usuarios")} tooltip="Usuários" size="sm" className="text-sm">
+                        <NavLink to="/usuarios">
+                          <Shield className="h-4 w-4" />
+                          <span>Usuários</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={isActive("/atividades")} tooltip="Atividades" size="sm" className="text-sm">
+                        <NavLink to="/atividades">
+                          <ClipboardList className="h-4 w-4" />
+                          <span>Atividades</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={isActive("/configuracoes")} tooltip="Configurações" size="sm" className="text-sm">
+                        <NavLink to="/configuracoes">
+                          <Settings className="h-4 w-4" />
+                          <span>Configurações</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </SidebarGroup>
+          </Collapsible>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="border-t">

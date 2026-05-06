@@ -49,7 +49,7 @@ interface Task {
 export default function DepartmentBoard() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [loading, setLoading] = useState(true);
   const [department, setDepartment] = useState<{ id: string; name: string } | null>(null);
   const [columns, setColumns] = useState<Column[]>([]);
@@ -226,12 +226,35 @@ export default function DepartmentBoard() {
 
   return (
     <div className="h-[calc(100vh-100px)] flex flex-col gap-6">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground cursor-pointer" onClick={() => navigate("/departamentos")}>
-        <ArrowLeft className="h-4 w-4" /> Voltar aos Departamentos
-      </div>
+      {isAdmin && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground cursor-pointer" onClick={() => navigate("/departamentos")}>
+          <ArrowLeft className="h-4 w-4" /> Voltar aos Departamentos
+        </div>
+      )}
 
       <PageHeader
-        title={department?.name || "Quadro"}
+        title={
+          isAdmin ? (
+            <span
+              className="cursor-pointer hover:text-primary transition-colors group flex items-center gap-2"
+              onClick={async () => {
+                const newName = window.prompt("Novo nome do departamento:", department?.name);
+                if (!newName?.trim() || newName.trim() === department?.name) return;
+                const { error } = await supabase
+                  .from("departments")
+                  .update({ name: newName.trim() })
+                  .eq("id", id!);
+                if (error) { toast.error(error.message); return; }
+                setDepartment(prev => prev ? { ...prev, name: newName.trim() } : prev);
+                toast.success("Departamento renomeado!");
+              }}
+              title="Clique para renomear o departamento"
+            >
+              {department?.name || "Quadro"}
+              <Pencil className="h-4 w-4 opacity-0 group-hover:opacity-60 transition-opacity" />
+            </span>
+          ) : (department?.name || "Quadro")
+        }
         subtitle="Gerencie tarefas e fluxo de trabalho."
       >
         <div className="flex items-center gap-2">

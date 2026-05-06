@@ -27,10 +27,7 @@ export default function Departments() {
   const [selectedDept, setSelectedDept] = useState<Department | null>(null);
 
   useEffect(() => {
-    if (!isAdmin) {
-      navigate("/");
-      return;
-    }
+    if (!isAdmin) return; // Apenas admin carrega a lista
     load();
   }, [isAdmin]);
 
