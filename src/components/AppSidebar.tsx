@@ -58,15 +58,15 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b relative">
-        <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"} px-3 py-10 transition-all duration-200`}>
-          {!collapsed && <img src="/logo-conecta.png" alt="Conecta Logo" className="h-6 w-auto object-contain animate-fade-in" />}
+        <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"} px-3 py-5 transition-all duration-200`}>
+          {!collapsed && <img src="/logo-conecta.png" alt="Conecta Logo" className="h-8 w-auto object-contain animate-fade-in" />}
           <SidebarTrigger className="h-8 w-8 hover:bg-accent transition-transform duration-200">
             <ChevronLeft className={`h-5 w-5 transition-transform duration-200 ${collapsed ? "rotate-180" : ""}`} />
           </SidebarTrigger>
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="gap-1">
+      <SidebarContent className="gap-1 pt-3">
         {showDashboard && (
           <SidebarGroup className="py-0">
             <SidebarGroupLabel className="text-sm font-semibold">Visão Geral</SidebarGroupLabel>
