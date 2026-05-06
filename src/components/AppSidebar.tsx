@@ -1,8 +1,8 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Wallet, Settings, LogOut, Receipt, Repeat, FileBarChart, Shield, ClipboardList, FolderKanban } from "lucide-react";
+import { LayoutDashboard, Users, Wallet, Settings, LogOut, Receipt, Repeat, FileBarChart, Shield, ClipboardList, FolderKanban, ChevronLeft } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
-  SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar,
+  SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar, SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -32,9 +32,12 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b">
-        <div className="flex items-center gap-2 px-3 py-4">
-          <img src="/logo-conecta.png" alt="Conecta Logo" className="h-10 w-auto object-contain" />
+      <SidebarHeader className="border-b relative">
+        <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"} px-3 py-10 transition-all duration-200`}>
+          {!collapsed && <img src="/logo-conecta.png" alt="Conecta Logo" className="h-6 w-auto object-contain animate-fade-in" />}
+          <SidebarTrigger className="h-8 w-8 hover:bg-accent transition-transform duration-200">
+            <ChevronLeft className={`h-5 w-5 transition-transform duration-200 ${collapsed ? "rotate-180" : ""}`} />
+          </SidebarTrigger>
         </div>
       </SidebarHeader>
 
