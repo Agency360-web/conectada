@@ -1,0 +1,152 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ================================
+   Design System — Finanza
+   Light corporativo (Notion/Asaas)
+   All colors HSL.
+   ================================ */
+
+@layer base {
+  :root {
+    /* Surfaces */
+    --background: 220 25% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Brand — deep indigo/blue (financial trust) */
+    --primary: 222 65% 22%;
+    --primary-foreground: 210 40% 98%;
+    --primary-soft: 222 60% 96%;
+
+    /* Secondary surfaces */
+    --secondary: 220 20% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 220 18% 96%;
+    --muted-foreground: 220 10% 45%;
+
+    --accent: 220 20% 95%;
+    --accent-foreground: 222 47% 11%;
+
+    /* Semantic */
+    --success: 152 60% 36%;
+    --success-foreground: 0 0% 100%;
+    --success-soft: 152 55% 94%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 30 60% 15%;
+    --warning-soft: 45 95% 94%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --destructive-soft: 0 80% 96%;
+
+    --info: 210 90% 50%;
+    --info-foreground: 0 0% 100%;
+
+    /* Borders / inputs */
+    --border: 220 15% 91%;
+    --input: 220 15% 91%;
+    --ring: 222 65% 30%;
+
+    --radius: 0.625rem;
+
+    /* Gradients & shadows */
+    --gradient-primary: linear-gradient(135deg, hsl(222 65% 22%), hsl(222 70% 35%));
+    --gradient-subtle: linear-gradient(180deg, hsl(220 25% 99%), hsl(220 20% 96%));
+
+    --shadow-sm: 0 1px 2px 0 hsl(222 47% 11% / 0.04);
+    --shadow-card: 0 1px 3px 0 hsl(222 47% 11% / 0.06), 0 1px 2px -1px hsl(222 47% 11% / 0.04);
+    --shadow-elegant: 0 10px 30px -12px hsl(222 65% 22% / 0.18);
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 30% 25%;
+    --sidebar-primary: 222 65% 22%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 220 20% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 220 15% 92%;
+    --sidebar-ring: 222 65% 30%;
+  }
+
+  .dark {
+    --background: 222 30% 8%;
+    --foreground: 210 30% 96%;
+    --card: 222 28% 11%;
+    --card-foreground: 210 30% 96%;
+    --popover: 222 28% 11%;
+    --popover-foreground: 210 30% 96%;
+    --primary: 210 90% 60%;
+    --primary-foreground: 222 47% 11%;
+    --primary-soft: 222 40% 18%;
+    --secondary: 222 25% 16%;
+    --secondary-foreground: 210 30% 96%;
+    --muted: 222 25% 16%;
+    --muted-foreground: 220 10% 65%;
+    --accent: 222 25% 18%;
+    --accent-foreground: 210 30% 96%;
+    --success: 152 60% 45%;
+    --success-foreground: 0 0% 100%;
+    --success-soft: 152 30% 18%;
+    --warning: 38 92% 55%;
+    --warning-foreground: 30 60% 15%;
+    --warning-soft: 38 40% 18%;
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --destructive-soft: 0 40% 18%;
+    --info: 210 90% 60%;
+    --info-foreground: 0 0% 100%;
+    --border: 222 20% 20%;
+    --input: 222 20% 20%;
+    --ring: 210 90% 60%;
+    --sidebar-background: 222 30% 9%;
+    --sidebar-foreground: 210 30% 90%;
+    --sidebar-primary: 210 90% 60%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 222 25% 16%;
+    --sidebar-accent-foreground: 210 30% 96%;
+    --sidebar-border: 222 20% 18%;
+    --sidebar-ring: 210 90% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, h3, h4, h5 {
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    @apply tracking-tight;
+  }
+}
+
+@layer components {
+  .kpi-card {
+    @apply rounded-xl border bg-card p-5 transition-shadow hover:shadow-md;
+    box-shadow: var(--shadow-card);
+  }
+  .stat-positive { color: hsl(var(--success)); }
+  .stat-negative { color: hsl(var(--destructive)); }
+}
