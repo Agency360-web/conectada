@@ -13,6 +13,7 @@ import { z } from "zod";
 import { PageHeader } from "@/components/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BudgetSettings } from "@/components/BudgetSettings";
+import { CommercialGoalSettings } from "@/components/CommercialGoalSettings";
 
 interface Cat { id: string; name: string; type: "INCOME" | "EXPENSE" }
 
@@ -111,6 +112,7 @@ export default function Settings() {
 
         <TabsContent value="budgets" className="space-y-6">
           <BudgetSettings />
+          <CommercialGoalSettings />
         </TabsContent>
       </Tabs>
     </div>

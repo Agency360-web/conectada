@@ -179,7 +179,7 @@ export function BudgetProgress({ startDate: propStart, endDate: propEnd }: Budge
           
           <div className="h-2 w-full bg-secondary overflow-hidden rounded-full">
             <div 
-              className="h-full bg-destructive transition-all duration-500 ease-in-out" 
+              className={`h-full ${expColor} transition-all duration-500 ease-in-out`}
               style={{ width: `${Math.min((current.expenses / budget.expense_limit) * 100, 100)}%` }} 
             />
           </div>

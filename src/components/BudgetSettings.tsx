@@ -130,7 +130,7 @@ export function BudgetSettings() {
         <Card className={editingId ? "border-primary/50 ring-1 ring-primary/20" : ""}>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="font-display text-lg">
-              {editingId ? "✏️ Editando Meta" : "Definir Metas"}
+              {editingId ? "✏️ Editando Meta Financeira" : "Definir Metas Financeiras"}
             </CardTitle>
             {editingId && (
               <Button variant="ghost" size="sm" onClick={clearForm}>
@@ -184,7 +184,7 @@ export function BudgetSettings() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="font-display text-lg">Histórico (Últimos 6 meses)</CardTitle>
+          <CardTitle className="font-display text-lg">Histórico Financeiro (Últimos 6 meses)</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -211,8 +211,8 @@ export function BudgetSettings() {
                     className={`border-b last:border-0 hover:bg-muted/30 transition-colors ${editingId === b.id ? "bg-primary/5" : ""}`}
                   >
                     <td className="px-4 py-3 font-medium">{b.year_month}</td>
-                    <td className="px-4 py-3 text-success">{formatBRL(b.revenue_target)}</td>
-                    <td className="px-4 py-3 text-destructive">{formatBRL(b.expense_limit)}</td>
+                    <td className="px-4 py-3 text-success font-bold">{formatBRL(b.revenue_target)}</td>
+                    <td className="px-4 py-3 text-destructive font-bold">{formatBRL(b.expense_limit)}</td>
                     <td className="px-4 py-3 text-right">
                       {canWrite && (
                         <div className="flex justify-end gap-2">
