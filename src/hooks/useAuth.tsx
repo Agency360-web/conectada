@@ -12,9 +12,9 @@ interface AuthCtx {
   signOut: () => Promise<void>;
   isAdmin: boolean;
   isFinanceiro: boolean;
-  isCriacao: boolean;
   isMembro: boolean;
   isComercial: boolean;
+  isDesigner: boolean;
   canWrite: boolean;
 }
 
@@ -65,10 +65,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isCriacao = roles.includes("criacao") || roles.includes("designer");
   const isMembro = roles.includes("membro") || roles.includes("designer");
   const isComercial = roles.includes("comercial");
+  const isDesigner = roles.includes("designer");
   const canWrite = isAdmin || isFinanceiro || isComercial;
 
   return (
-    <AuthContext.Provider value={{ session, user, roles, loading, signOut, isAdmin, isFinanceiro, isCriacao, isMembro, isComercial, canWrite }}>
+    <AuthContext.Provider value={{ session, user, roles, loading, signOut, isAdmin, isFinanceiro, isCriacao, isMembro, isComercial, isDesigner, canWrite }}>
       {children}
     </AuthContext.Provider>
   );

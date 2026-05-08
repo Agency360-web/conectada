@@ -278,7 +278,7 @@ export default function DepartmentBoard() {
               )}
 
               {columns.map(col => (
-                <div key={col.id} className="w-80 flex flex-col bg-muted/40 rounded-xl border p-3">
+                <div key={col.id} className="w-[280px] flex flex-col bg-muted/40 rounded-xl border p-3 shrink-0">
                   {/* Cabeçalho da coluna com cor personalizada */}
                   <div
                     className={`flex items-center justify-between mb-3 px-3 py-2 rounded-lg -mx-0 ${
@@ -288,9 +288,9 @@ export default function DepartmentBoard() {
                     }`}
                     style={col.color && col.color !== 'default' ? { borderTopColor: col.color } : {}}
                   >
-                    <h3 className="font-semibold text-sm flex items-center gap-2 uppercase tracking-wider text-muted-foreground">
+                    <h3 className="font-bold text-[10px] flex items-center gap-2 uppercase tracking-wider text-muted-foreground">
                       {col.name}
-                      <Badge variant="secondary" className="bg-muted text-[10px] py-0 px-1.5 h-4">
+                      <Badge variant="secondary" className="bg-muted text-[9px] py-0 px-1.5 h-4">
                         {tasks.filter(t => t.column_id === col.id).length}
                       </Badge>
                     </h3>
@@ -403,7 +403,7 @@ export default function DepartmentBoard() {
               ))}
               
               {columns.length > 0 && (
-                <Button variant="ghost" className="w-80 h-10 border border-dashed rounded-xl shrink-0 text-muted-foreground hover:text-primary" onClick={addColumn}>
+                <Button variant="ghost" className="w-[280px] h-10 border border-dashed rounded-xl shrink-0 text-muted-foreground hover:text-primary" onClick={addColumn}>
                   <Plus className="h-4 w-4 mr-2" /> Adicionar Coluna
                 </Button>
               )}

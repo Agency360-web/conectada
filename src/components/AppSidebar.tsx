@@ -2,7 +2,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Users, Wallet, Settings, LogOut, FileBarChart,
-  Shield, ClipboardList, FolderKanban, ChevronLeft, ChevronRight, Briefcase, Target
+  Shield, ClipboardList, FolderKanban, ChevronLeft, ChevronRight, Briefcase, Target, Palette
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -19,7 +19,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { pathname } = useLocation();
-  const { user, signOut, roles, isAdmin, isFinanceiro, isCriacao, isMembro, isComercial } = useAuth();
+  const { user, signOut, roles, isAdmin, isFinanceiro, isCriacao, isMembro, isComercial, isDesigner } = useAuth();
 
   const isActive = (url: string) => (url === "/" ? pathname === "/" : pathname.startsWith(url));
 
@@ -108,6 +108,41 @@ export function AppSidebar() {
                         <NavLink to="/relatorios">
                           <FileBarChart className="h-4 w-4" />
                           <span>Relatórios</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </SidebarGroup>
+          </Collapsible>
+        )}
+
+        {(isAdmin || isCriacao || isMembro || isDesigner) && (
+          <Collapsible defaultOpen className="group/collapsible">
+            <SidebarGroup className="py-0">
+              <SidebarGroupLabel asChild className="text-sm font-semibold">
+                <CollapsibleTrigger className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex w-full items-center justify-between cursor-pointer">
+                  Departamento Criativo
+                  <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                </CollapsibleTrigger>
+              </SidebarGroupLabel>
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={pathname === "/departamentos/criativo/dashboard"} tooltip="Dashboard" size="sm" className="text-sm">
+                        <NavLink to="/departamentos/criativo/dashboard">
+                          <Palette className="h-4 w-4" />
+                          <span>Dashboard</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={pathname.includes("/board") && pathname.includes(criacaoId || "")} tooltip="Projetos / Tarefas" size="sm" className="text-sm">
+                        <NavLink to={criacaoId ? `/departamentos/${criacaoId}/board` : "/departamentos"}>
+                          <FolderKanban className="h-4 w-4" />
+                          <span>Projetos / Tarefas</span>
                         </NavLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
