@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TransactionFormDialog } from "@/components/TransactionFormDialog";
+import { ImportStatementDialog } from "@/components/ImportStatementDialog";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useAuth } from "@/hooks/useAuth";
 import { formatBRL, formatDate, todayISO } from "@/lib/format";
@@ -24,6 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
+import { FileUp } from "lucide-react";
 
 interface Tx {
   id: string; type: string; amount: number; due_date: string; payment_date: string | null;
@@ -37,6 +39,7 @@ export default function Finance() {
   const [txs, setTxs] = useState<Tx[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editingTxId, setEditingTxId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "INCOME" | "EXPENSE">("all");
   const [defaultType, setDefaultType] = useState<"INCOME" | "EXPENSE">("INCOME");
@@ -48,7 +51,7 @@ export default function Finance() {
   const [categoryFilter, setCategoryFilter] = useState("all");
 
   const [clients, setClients] = useState<{id: string, name: string}[]>([]);
-  const [categories, setCategories] = useState<{id: string, name: string}[]>([]);
+  const [categories, setCategories] = useState<{id: string, name: string, type: string}[]>([]);
 
   const load = async () => {
     setLoading(true);
@@ -63,7 +66,7 @@ export default function Finance() {
   const loadFilters = async () => {
     const [{ data: cli }, { data: cat }] = await Promise.all([
       supabase.from("clients").select("id, name").order("name"),
-      supabase.from("categories").select("id, name").order("name")
+      supabase.from("categories").select("id, name, type").order("name")
     ]);
     if (cli) setClients(cli);
     if (cat) setCategories(cat);
@@ -121,11 +124,18 @@ export default function Finance() {
         title="Financeiro" 
         subtitle="Fluxo de caixa unificado"
       >
-        {canWrite && (
-          <Button onClick={() => { setEditingTxId(null); setDefaultType("INCOME"); setOpen(true); }}>
-            <Plus className="h-4 w-4 mr-2" />Novo lançamento
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {canWrite && (
+            <>
+              <Button variant="outline" onClick={() => setImportOpen(true)}>
+                <FileUp className="h-4 w-4 mr-2" />Importar Extrato
+              </Button>
+              <Button onClick={() => { setEditingTxId(null); setDefaultType("INCOME"); setOpen(true); }}>
+                <Plus className="h-4 w-4 mr-2" />Novo lançamento
+              </Button>
+            </>
+          )}
+        </div>
       </PageHeader>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -270,6 +280,14 @@ export default function Finance() {
         onSaved={load} 
         defaultType={defaultType} 
         transactionId={editingTxId}
+      />
+
+      <ImportStatementDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        onImported={load}
+        categories={categories}
+        clients={clients}
       />
     </div>
   );

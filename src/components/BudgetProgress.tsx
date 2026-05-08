@@ -6,32 +6,47 @@ import { formatBRL, formatPercent } from "@/lib/format";
 import { toast } from "sonner";
 import { Info } from "lucide-react";
 
-export function BudgetProgress() {
+interface BudgetProgressProps {
+  startDate?: Date;
+  endDate?: Date;
+}
+
+export function BudgetProgress({ startDate: propStart, endDate: propEnd }: BudgetProgressProps) {
   const [loading, setLoading] = useState(true);
   const [budget, setBudget] = useState<{ revenue_target: number; expense_limit: number } | null>(null);
   const [current, setCurrent] = useState({ revenue: 0, expenses: 0, pendingRevenue: 0 });
 
   useEffect(() => {
     load();
-  }, []);
+  }, [propStart, propEnd]);
 
   const load = async () => {
+    setLoading(true);
     const now = new Date();
-    const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const startDate = propStart || new Date(now.getFullYear(), now.getMonth(), 1);
+    const endDate = propEnd || new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-    // Busca o orçamento do mês
-    const { data: bData } = await supabase
+    // Get all budgets in the range
+    const isoStartMonth = startDate.toISOString().slice(0, 7);
+    const isoEndMonth = endDate.toISOString().slice(0, 7);
+
+    const { data: budgets } = await supabase
       .from("monthly_budgets")
-      .select("revenue_target, expense_limit")
-      .eq("year_month", yearMonth)
-      .maybeSingle();
+      .select("revenue_target, expense_limit, year_month")
+      .gte("year_month", isoStartMonth)
+      .lte("year_month", isoEndMonth);
 
-    if (bData) {
-      setBudget(bData);
-    }
+    const totalBudget = (budgets || []).reduce(
+      (acc, b) => ({
+        revenue_target: acc.revenue_target + (b.revenue_target || 0),
+        expense_limit: acc.expense_limit + (b.expense_limit || 0),
+      }),
+      { revenue_target: 0, expense_limit: 0 }
+    );
 
-    // Busca as transações do mês atual (Pagas e Pendentes)
-    const isoStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    setBudget(totalBudget.revenue_target > 0 || totalBudget.expense_limit > 0 ? totalBudget : null);
+
+    // Fetch transactions in the range
     const { data: txs } = await supabase
       .from("transactions")
       .select("type, amount, status, payment_date, due_date")
@@ -41,9 +56,13 @@ export function BudgetProgress() {
       let rev = 0;
       let exp = 0;
       let pendingRev = 0;
+      
+      const isoStartStr = startDate.toISOString().slice(0, 10);
+      const isoEndStr = endDate.toISOString().slice(0, 10);
+
       txs.forEach((t) => {
-        const date = t.payment_date || t.due_date;
-        if (date && date.startsWith(yearMonth)) {
+        const date = t.status === "PAID" ? (t.payment_date || t.due_date) : t.due_date;
+        if (date && date >= isoStartStr && date <= isoEndStr) {
           if (t.type === "INCOME") {
             if (t.status === "PAID") rev += Number(t.amount);
             else pendingRev += Number(t.amount);
@@ -53,12 +72,12 @@ export function BudgetProgress() {
       });
       setCurrent({ revenue: rev, expenses: exp, pendingRevenue: pendingRev });
 
-      if (bData && bData.expense_limit > 0) {
-        const expPerc = exp / bData.expense_limit;
+      if (totalBudget && totalBudget.expense_limit > 0) {
+        const expPerc = exp / totalBudget.expense_limit;
         if (expPerc > 1) {
-          toast.error("Atenção! Você ultrapassou 100% do teto de despesas deste mês.", { duration: 6000 });
+          toast.error("Atenção! Você ultrapassou 100% do teto de despesas deste período.", { duration: 6000 });
         } else if (expPerc >= 0.9) {
-          toast.warning("Cuidado! Você atingiu mais de 90% do teto de despesas deste mês.", { duration: 6000 });
+          toast.warning("Cuidado! Você atingiu mais de 90% do teto de despesas deste período.", { duration: 6000 });
         }
       }
     }

@@ -21,13 +21,19 @@ interface Kpi {
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState("last_6_months");
+  const [customStart, setCustomStart] = useState<Date | undefined>(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [customEnd, setCustomEnd] = useState<Date | undefined>(new Date());
   const [kpi, setKpi] = useState<Kpi>({ revenue: 0, expenses: 0, clientCosts: 0, receivable: 0, payable: 0 });
+  const [dateRange, setDateRange] = useState<{ start: Date; end: Date }>({ 
+    start: new Date(new Date().getFullYear(), new Date().getMonth() - 5, 1), 
+    end: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0) 
+  });
   const [topClients, setTopClients] = useState<{ name: string; revenue: number; cost: number; profit: number; margin: number }[]>([]);
   const [monthly, setMonthly] = useState<{ month: string; receita: number; despesa: number }[]>([]);
 
   useEffect(() => {
     load();
-  }, [period]);
+  }, [period, customStart, customEnd]);
 
   const load = async () => {
     setLoading(true);
@@ -42,25 +48,41 @@ export default function Dashboard() {
 
     const now = new Date();
     let startDate = new Date(0);
+    let endDate = new Date(now.getFullYear(), now.getMonth() + 12, 0);
 
     let numMonths = 6;
     if (period === "this_month") {
       startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
       numMonths = 1;
     } else if (period === "last_3_months") {
       startDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
       numMonths = 3;
     } else if (period === "last_6_months") {
       startDate = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
       numMonths = 6;
     } else if (period === "this_year") {
       startDate = new Date(now.getFullYear(), 0, 1);
+      endDate = new Date(now.getFullYear(), 11, 31);
       numMonths = now.getMonth() + 1;
+    } else if (period === "custom" && customStart && customEnd) {
+      startDate = customStart;
+      endDate = customEnd;
+      // Calculate months for the chart
+      numMonths = (endDate.getFullYear() - startDate.getFullYear()) * 12 + (endDate.getMonth() - startDate.getMonth()) + 1;
+      if (numMonths <= 0) numMonths = 1;
     }
 
     const isoStart = startDate.toISOString().slice(0, 10);
-    allTx = allTx.filter(t => (t.payment_date || t.due_date) >= isoStart);
-    allCosts = allCosts.filter(c => c.cost_date >= isoStart);
+    const isoEnd = endDate.toISOString().slice(0, 10);
+
+    allTx = allTx.filter(t => {
+      const date = t.status === "PAID" ? (t.payment_date || t.due_date) : t.due_date;
+      return date >= isoStart && date <= isoEnd;
+    });
+    allCosts = allCosts.filter(c => c.cost_date >= isoStart && c.cost_date <= isoEnd);
 
     const revenue = allTx.filter((t) => t.type === "INCOME" && t.status === "PAID").reduce((s, t) => s + Number(t.amount), 0);
     const expenses = allTx.filter((t) => t.type === "EXPENSE" && t.status === "PAID").reduce((s, t) => s + Number(t.amount), 0);
@@ -69,6 +91,7 @@ export default function Dashboard() {
     const clientCosts = allCosts.reduce((s, c) => s + Number(c.amount_allocated), 0);
 
     setKpi({ revenue, expenses, clientCosts, receivable, payable });
+    setDateRange({ start: startDate, end: endDate });
 
     // Per-client profitability
     const map = new Map<string, { name: string; revenue: number; cost: number }>();
@@ -145,9 +168,27 @@ export default function Dashboard() {
               <SelectItem value="last_3_months">Últimos 3 meses</SelectItem>
               <SelectItem value="last_6_months">Últimos 6 meses</SelectItem>
               <SelectItem value="this_year">Ano atual</SelectItem>
+              <SelectItem value="custom">Personalizado</SelectItem>
             </SelectContent>
           </Select>
         </div>
+        {period === "custom" && (
+           <div className="flex items-center gap-2">
+             <input 
+               type="date" 
+               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+               value={customStart?.toISOString().split('T')[0]}
+               onChange={(e) => setCustomStart(new Date(e.target.value))}
+             />
+             <span className="text-muted-foreground">até</span>
+             <input 
+               type="date" 
+               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+               value={customEnd?.toISOString().split('T')[0]}
+               onChange={(e) => setCustomEnd(new Date(e.target.value))}
+             />
+           </div>
+         )}
       </PageHeader>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -201,8 +242,8 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Acompanhamento de Metas do Mês */}
-      <BudgetProgress />
+      {/* Acompanhamento de Metas do Período */}
+      <BudgetProgress startDate={dateRange.start} endDate={dateRange.end} />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">

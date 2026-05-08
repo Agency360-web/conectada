@@ -51,7 +51,10 @@ export function StatCard({
         )}
       </div>
       {subValue && (
-        <div className="flex items-center gap-1 mt-3 text-xs text-muted-foreground">
+        <div className={cn(
+          "flex items-center gap-1 text-muted-foreground",
+          size === "small" ? "mt-1.5 text-[10px]" : "mt-3 text-xs"
+        )}>
           {subValue}
         </div>
       )}

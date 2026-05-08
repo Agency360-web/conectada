@@ -39,7 +39,7 @@ export default function ClientDetail() {
     const [{ data: cli }, { data: t }, { data: c }] = await Promise.all([
       supabase.from("clients").select("*").eq("id", id).single(),
       supabase.from("transactions").select("id, type, amount, due_date, status, description").eq("client_id", id).order("due_date", { ascending: false }),
-      supabase.from("client_costs").select("id, amount_allocated, description, cost_date").eq("client_id", id).order("cost_date", { ascending: false }),
+      supabase.from("client_costs").select("id, amount_allocated, description, cost_date, transaction_id").eq("client_id", id).order("cost_date", { ascending: false }),
     ]);
     setClient(cli);
     setTxs(t || []);
@@ -102,16 +102,19 @@ export default function ClientDetail() {
   if (loading) return <div className="space-y-4"><Skeleton className="h-8 w-64" /><Skeleton className="h-32" /><Skeleton className="h-64" /></div>;
   if (!client) return <p className="text-muted-foreground">Cliente não encontrado.</p>;
 
-  const revenue = txs.filter((t) => t.type === "INCOME" && t.status === "PAID").reduce((s, t) => s + Number(t.amount), 0);
-  const txExpense = txs.filter((t) => t.type === "EXPENSE" && t.status === "PAID").reduce((s, t) => s + Number(t.amount), 0);
+  const revenuePaid = txs.filter((t) => t.type === "INCOME" && t.status === "PAID").reduce((s, t) => s + Number(t.amount), 0);
+  const revenuePending = txs.filter((t) => t.type === "INCOME" && t.status !== "PAID").reduce((s, t) => s + Number(t.amount), 0);
+  const revenueTotal = revenuePaid + revenuePending;
+  
   const allocatedCosts = costs.reduce((s, c) => s + Number(c.amount_allocated), 0);
-  // Avoid double-counting: client_costs already includes any tx-linked expenses created via the form
-  const totalCost = allocatedCosts + txs.filter((t) => t.type === "EXPENSE" && t.status === "PAID" && !costs.some((c) => true)).reduce((s) => s, 0);
-  // Simpler & correct: sum unique expenses. We use allocatedCosts as the source-of-truth for client costs.
-  const cost = allocatedCosts;
-  const profit = revenue - cost;
-  const margin = revenue > 0 ? profit / revenue : 0;
-  void txExpense; void totalCost;
+  
+  const txExpenseExtra = txs
+    .filter((t) => t.type === "EXPENSE" && !costs.some((c) => c.transaction_id === t.id))
+    .reduce((s, t) => s + Number(t.amount), 0);
+
+  const cost = allocatedCosts + txExpenseExtra;
+  const profit = revenuePaid - cost; // Profit based on realized revenue
+  const margin = revenuePaid > 0 ? profit / revenuePaid : 0;
 
   return (
     <div className="space-y-6">
@@ -148,7 +151,19 @@ export default function ClientDetail() {
       </PageHeader>
 
       <div className="grid gap-4 md:grid-cols-4">
-        <StatCard label="Receita" value={formatBRL(revenue)} icon={TrendingUp} accent="success" size="small" />
+        <StatCard 
+          label="Receita" 
+          value={formatBRL(revenuePaid)} 
+          icon={TrendingUp} 
+          accent="success" 
+          size="small" 
+          subValue={
+            <span className="flex items-center gap-1">
+              <TrendingUp className="h-3 w-3 text-muted-foreground" />
+              A receber: {formatBRL(revenuePending)}
+            </span>
+          }
+        />
         <StatCard label="Custos alocados" value={formatBRL(cost)} icon={TrendingDown} accent="destructive" size="small" />
         <StatCard label="Lucro" value={formatBRL(profit)} icon={Wallet} accent={profit >= 0 ? "success" : "destructive"} size="small" />
         <StatCard label="Margem" value={formatPercent(margin)} icon={Percent} accent={margin >= 0.2 ? "success" : "warning"} size="small" />
