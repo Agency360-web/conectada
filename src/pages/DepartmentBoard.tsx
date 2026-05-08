@@ -226,11 +226,6 @@ export default function DepartmentBoard() {
 
   return (
     <div className="h-[calc(100vh-100px)] flex flex-col gap-6">
-      {isAdmin && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground cursor-pointer" onClick={() => navigate("/departamentos")}>
-          <ArrowLeft className="h-4 w-4" /> Voltar aos Departamentos
-        </div>
-      )}
 
       <PageHeader
         title={

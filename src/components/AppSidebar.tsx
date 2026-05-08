@@ -2,7 +2,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Users, Wallet, Settings, LogOut, FileBarChart,
-  Shield, ClipboardList, FolderKanban, ChevronLeft, ChevronRight, Briefcase
+  Shield, ClipboardList, FolderKanban, ChevronLeft, ChevronRight, Briefcase, Target
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -29,6 +29,7 @@ export function AppSidebar() {
   const showDashboard = isAdmin || isFinanceiro;
   const showAdminFinance = isAdmin || isFinanceiro;
   const showDepartments = isAdmin || isCriacao || isMembro;
+  const showCommercial = isAdmin || isComercial;
   const showSystemMgmt = isAdmin;
 
   const [criacaoId, setCriacaoId] = useState<string | null>(null);
@@ -165,6 +166,23 @@ export function AppSidebar() {
                         </NavLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
+
+                    {showCommercial && (
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={isActive("/departamentos/comercial")}
+                          tooltip="Comercial"
+                          size="sm"
+                          className="text-sm"
+                        >
+                          <NavLink to="/departamentos/comercial">
+                            <Target className="h-4 w-4" />
+                            <span>Comercial</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )}
                   </SidebarMenu>
                 </SidebarGroupContent>
               </CollapsibleContent>

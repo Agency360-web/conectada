@@ -17,6 +17,7 @@ import Settings from "@/pages/Settings";
 import ActivityLogs from "@/pages/ActivityLogs";
 import Departments from "@/pages/Departments";
 import DepartmentBoard from "@/pages/DepartmentBoard";
+import Commercial from "@/pages/Commercial";
 import BoardRedirect from "@/pages/BoardRedirect";
 import NotFound from "./pages/NotFound";
 
@@ -55,6 +56,9 @@ const App = () => (
 
               {/* Board - Admin, Criacao, Designer, Membro */}
               <Route path="/departamentos/:id/board" element={<RoleBasedRoute allowedRoles={["criacao", "membro", "designer"]}><DepartmentBoard /></RoleBasedRoute>} />
+
+              {/* Comercial - Admin e Comercial */}
+              <Route path="/departamentos/comercial" element={<RoleBasedRoute allowedRoles={["comercial"]}><Commercial /></RoleBasedRoute>} />
 
             </Route>
             <Route path="*" element={<NotFound />} />

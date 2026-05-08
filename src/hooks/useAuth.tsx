@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-type AppRole = "admin" | "financeiro" | "criacao" | "membro" | "viewer" | "designer";
+type AppRole = "admin" | "financeiro" | "criacao" | "membro" | "viewer" | "designer" | "comercial";
 
 interface AuthCtx {
   session: Session | null;
@@ -14,6 +14,7 @@ interface AuthCtx {
   isFinanceiro: boolean;
   isCriacao: boolean;
   isMembro: boolean;
+  isComercial: boolean;
   canWrite: boolean;
 }
 
@@ -63,10 +64,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isFinanceiro = roles.includes("financeiro");
   const isCriacao = roles.includes("criacao") || roles.includes("designer");
   const isMembro = roles.includes("membro") || roles.includes("designer");
-  const canWrite = isAdmin || isFinanceiro;
+  const isComercial = roles.includes("comercial");
+  const canWrite = isAdmin || isFinanceiro || isComercial;
 
   return (
-    <AuthContext.Provider value={{ session, user, roles, loading, signOut, isAdmin, isFinanceiro, isCriacao, isMembro, canWrite }}>
+    <AuthContext.Provider value={{ session, user, roles, loading, signOut, isAdmin, isFinanceiro, isCriacao, isMembro, isComercial, canWrite }}>
       {children}
     </AuthContext.Provider>
   );
