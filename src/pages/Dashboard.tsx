@@ -136,7 +136,7 @@ export default function Dashboard() {
     setLoading(false);
   };
 
-  const profit = kpi.revenue - kpi.expenses;
+  const profit = kpi.revenue - kpi.expenses - kpi.clientCosts;
   const totalCostForMargin = kpi.expenses + kpi.clientCosts;
   const margin = kpi.revenue > 0 ? (kpi.revenue - totalCostForMargin) / kpi.revenue : 0;
 

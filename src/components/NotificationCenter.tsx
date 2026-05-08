@@ -156,7 +156,9 @@ export function NotificationCenter() {
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold leading-none mb-1">{n.title}</p>
                     <p className="text-[11px] text-muted-foreground line-clamp-1 mb-1">{n.description}</p>
-                    <p className="text-[9px] font-mono text-primary">{new Date(n.date).toLocaleDateString('pt-BR')}</p>
+                    <div className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
+                      <Calendar className="h-3 w-3" /> {new Date(n.date + "T12:00:00").toLocaleDateString('pt-BR')}
+                    </div>
                   </div>
                 </button>
               ))}
