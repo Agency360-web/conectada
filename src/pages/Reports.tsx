@@ -29,33 +29,84 @@ export default function Reports() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("generate-report", {
-        body: {
-          report_type: reportType,
-          date_from: dateFrom,
-          date_to: dateTo,
-          format: format,
-          client_id: clientId === "all" ? undefined : clientId
+      if (format === "csv") {
+        // Client-side CSV generation
+        let query = supabase
+          .from("transactions")
+          .select("*, clients(name), categories(name)")
+          .gte("due_date", dateFrom)
+          .lte("due_date", dateTo)
+          .order("due_date", { ascending: true });
+
+        if (clientId && clientId !== "all") {
+          query = query.eq("client_id", clientId);
         }
-      });
 
-      if (error) throw error;
+        const { data: transactions, error: txError } = await query;
+        if (txError) throw txError;
 
-      // The invoke utility might return data differently for binary/text
-      // For binary (PDF), we might need to handle the blob
-      // However, if the function returns a response with content-type, we handle it:
-      
-      const blob = new Blob([data], { type: format === "pdf" ? "application/pdf" : "text/csv" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `relatorio-${reportType}-${todayISO()}.${format}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+        if (!transactions || transactions.length === 0) {
+          toast.info("Nenhuma transação encontrada no período selecionado.");
+          return;
+        }
 
-      toast.success("Relatório gerado com sucesso!");
+        let csv = "\uFEFF"; // UTF-8 BOM for Excel
+        csv += "Data,Tipo,Status,Valor,Cliente,Categoria,Descricao\n";
+        transactions.forEach(t => {
+          const date = t.due_date;
+          const type = t.type === "INCOME" ? "Receita" : "Despesa";
+          const status = t.status === "PAID" ? "Pago" : "Pendente";
+          const val = t.amount;
+          const cli = t.clients?.name || "N/A";
+          const cat = t.categories?.name || "N/A";
+          const desc = (t.description || "").replace(/,/g, " ");
+          csv += `${date},${type},${status},${val},${cli},${cat},${desc}\n`;
+        });
+
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `relatorio-${reportType}-${todayISO()}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        toast.success("CSV gerado com sucesso!");
+      } else {
+        // PDF attempt via Edge Function
+        const { data, error } = await supabase.functions.invoke("generate-report", {
+          body: {
+            report_type: reportType,
+            date_from: dateFrom,
+            date_to: dateTo,
+            format: format,
+            client_id: clientId === "all" ? undefined : clientId
+          }
+        });
+
+        if (error) {
+          console.error("Erro na Edge Function:", error);
+          // Try to get a more descriptive error from the response
+          let errorMsg = "Erro ao processar PDF no servidor.";
+          if (error.message) errorMsg = error.message;
+          if (error.status === 404) errorMsg = "A função não foi encontrada. Verifique se o endereço está correto.";
+          if (error.status === 403) errorMsg = "Você não tem permissão (Admin/Financeiro) para gerar este relatório.";
+          
+          throw new Error(errorMsg);
+        }
+
+        const blob = new Blob([data], { type: "application/pdf" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `relatorio-${reportType}-${todayISO()}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        toast.success("PDF gerado com sucesso!");
+      }
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Erro ao gerar relatório");
