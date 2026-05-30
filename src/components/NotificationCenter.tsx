@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, Calendar, Target, Wallet, AlertCircle, Loader2 } from "lucide-react";
+import { Bell, Calendar, Wallet, AlertCircle, Loader2, X, Trash2 } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 
 interface Notification {
   id: string;
-  type: 'commercial' | 'finance' | 'creative';
+  type: 'finance' | 'creative';
   title: string;
   description: string;
   date: string;
@@ -23,6 +23,14 @@ interface Notification {
 export function NotificationCenter() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dismissedIds, setDismissedIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("dismissed_notifications");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const navigate = useNavigate();
 
   const loadNotifications = async () => {
@@ -31,30 +39,7 @@ export function NotificationCenter() {
     const alerts: Notification[] = [];
 
     try {
-      // 1. Comercial
-      try {
-        const { data: leads } = await supabase
-          .from("leads")
-          .select("id, company_name, next_contact_date")
-          .neq("status", "WON")
-          .neq("status", "LOST")
-          .lte("next_contact_date", today);
-
-        leads?.forEach(l => {
-          if (l.next_contact_date) {
-            alerts.push({
-              id: `lead-${l.id}`,
-              type: 'commercial',
-              title: "Follow-up Pendente",
-              description: l.company_name,
-              date: l.next_contact_date,
-              link: "/departamentos/comercial"
-            });
-          }
-        });
-      } catch (e) { console.error("Erro leads:", e); }
-
-      // 2. Financeiro
+      // 1. Financeiro
       try {
         const { data: transactions } = await supabase
           .from("transactions")
@@ -74,7 +59,7 @@ export function NotificationCenter() {
         });
       } catch (e) { console.error("Erro financeiro:", e); }
 
-      // 3. Criativo
+      // 2. Criativo
       try {
         const { data: tasks } = await supabase
           .from("tasks")
@@ -113,54 +98,93 @@ export function NotificationCenter() {
     navigate(link);
   };
 
+  const dismissNotification = (id: string) => {
+    const updatedDismissed = [...dismissedIds, id];
+    setDismissedIds(updatedDismissed);
+    localStorage.setItem("dismissed_notifications", JSON.stringify(updatedDismissed));
+  };
+
+  const clearAllNotifications = () => {
+    const allIds = notifications.map(n => n.id);
+    const updatedDismissed = Array.from(new Set([...dismissedIds, ...allIds]));
+    setDismissedIds(updatedDismissed);
+    localStorage.setItem("dismissed_notifications", JSON.stringify(updatedDismissed));
+  };
+
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'commercial': return <Target className="h-4 w-4 text-blue-500" />;
       case 'finance': return <Wallet className="h-4 w-4 text-green-500" />;
       case 'creative': return <Calendar className="h-4 w-4 text-purple-500" />;
       default: return <Bell className="h-4 w-4" />;
     }
   };
 
+  const activeNotifications = notifications.filter(n => !dismissedIds.includes(n.id));
+
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full hover:bg-accent">
           <Bell className="h-5 w-5 text-muted-foreground" />
-          {notifications.length > 0 && (
+          {activeNotifications.length > 0 && (
             <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 border-2 border-background text-[10px]">
-              {notifications.length}
+              {activeNotifications.length}
             </Badge>
           )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
-        <div className="p-4 border-b bg-muted/20">
+        <div className="p-4 border-b bg-muted/20 flex items-center justify-between">
           <h3 className="font-bold text-sm">Central de Alertas</h3>
+          {activeNotifications.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearAllNotifications}
+              className="h-7 text-xs px-2 hover:bg-destructive-soft hover:text-destructive text-muted-foreground flex items-center gap-1 transition-colors"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Limpar tudo
+            </Button>
+          )}
         </div>
         <ScrollArea className="h-[400px]">
-          {notifications.length === 0 ? (
+          {activeNotifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
               <AlertCircle className="h-6 w-6 text-muted-foreground mb-2" />
               <p className="text-sm font-medium">Tudo em dia!</p>
             </div>
           ) : (
             <div className="flex flex-col">
-              {notifications.map((n) => (
-                <button
+              {activeNotifications.map((n) => (
+                <div
                   key={n.id}
+                  className="flex items-start justify-between p-4 border-b last:border-0 hover:bg-muted/50 transition-colors group relative cursor-pointer"
                   onClick={() => handleNotificationClick(n.link)}
-                  className="flex gap-3 p-4 hover:bg-muted/50 transition-colors text-left border-b last:border-0"
                 >
-                  <div className="mt-1">{getTypeIcon(n.type)}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold leading-none mb-1">{n.title}</p>
-                    <p className="text-[11px] text-muted-foreground line-clamp-1 mb-1">{n.description}</p>
-                    <div className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
-                      <Calendar className="h-3 w-3" /> {new Date(n.date + "T12:00:00").toLocaleDateString('pt-BR')}
+                  <div className="flex gap-3 flex-1 min-w-0">
+                    <div className="mt-1">{getTypeIcon(n.type)}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold leading-none mb-1">{n.title}</p>
+                      <p className="text-[11px] text-muted-foreground line-clamp-1 mb-1">{n.description}</p>
+                      <div className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
+                        <Calendar className="h-3 w-3" /> {new Date(n.date + "T12:00:00").toLocaleDateString('pt-BR')}
+                      </div>
                     </div>
                   </div>
-                </button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 opacity-0 group-hover:opacity-100 focus:opacity-100 text-muted-foreground hover:text-destructive hover:bg-muted transition-all rounded-full ml-2 shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      dismissNotification(n.id);
+                    }}
+                    title="Remover alerta"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               ))}
             </div>
           )}

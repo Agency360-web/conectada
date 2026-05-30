@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Wallet, CheckCircle2, Filter, Pencil, Trash2, MoreHorizontal } from "lucide-react";
+import { Plus, Wallet, CheckCircle2, Filter, Pencil, Trash2, MoreHorizontal, Eye, EyeOff } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,6 +43,19 @@ export default function Finance() {
   const [editingTxId, setEditingTxId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "INCOME" | "EXPENSE">("all");
   const [defaultType, setDefaultType] = useState<"INCOME" | "EXPENSE">("INCOME");
+  const [hiddenData, setHiddenData] = useState<boolean>(() => {
+    return localStorage.getItem("finance_hidden_data") === "true";
+  });
+
+  const toggleHidden = () => {
+    setHiddenData((prev) => {
+      const next = !prev;
+      localStorage.setItem("finance_hidden_data", String(next));
+      return next;
+    });
+  };
+
+  const blurClass = hiddenData ? "blur-sm select-none" : "";
 
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -124,7 +137,16 @@ export default function Finance() {
         title="Financeiro" 
         subtitle="Fluxo de caixa unificado"
       >
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleHidden}
+            title={hiddenData ? "Mostrar dados" : "Ocultar dados"}
+            className="h-9 w-9"
+          >
+            {hiddenData ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+          </Button>
           {canWrite && (
             <>
               <Button variant="outline" onClick={() => setImportOpen(true)}>
@@ -139,9 +161,9 @@ export default function Finance() {
       </PageHeader>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <StatCard label="Entradas (pago)" value={formatBRL(totalIn)} accent="success" size="small" />
-        <StatCard label="Saídas (pago)" value={formatBRL(totalOut)} accent="destructive" size="small" />
-        <StatCard label="Saldo" value={formatBRL(totalIn - totalOut)} accent={totalIn - totalOut >= 0 ? "success" : "destructive"} size="small" />
+        <div className={blurClass}><StatCard label="Entradas (pago)" value={formatBRL(totalIn)} accent="success" size="small" /></div>
+        <div className={blurClass}><StatCard label="Saídas (pago)" value={formatBRL(totalOut)} accent="destructive" size="small" /></div>
+        <div className={blurClass}><StatCard label="Saldo" value={formatBRL(totalIn - totalOut)} accent={totalIn - totalOut >= 0 ? "success" : "destructive"} size="small" /></div>
       </div>
 
       <Tabs value={filter} onValueChange={(v) => setFilter(v as "all" | "INCOME" | "EXPENSE")}>
@@ -229,11 +251,15 @@ export default function Finance() {
                 {filtered.map((t) => (
                   <TableRow key={t.id}>
                     <TableCell className="text-sm">{formatDate(t.due_date)}</TableCell>
-                    <TableCell className="text-sm font-medium">{t.description || (t.type === "INCOME" ? "Receita" : "Despesa")}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{t.client?.name || "—"}</TableCell>
+                    <TableCell className={`text-sm font-medium transition-all duration-300 ${blurClass}`}>
+                      {t.description || (t.type === "INCOME" ? "Receita" : "Despesa")}
+                    </TableCell>
+                    <TableCell className={`text-sm text-muted-foreground transition-all duration-300 ${blurClass}`}>
+                      {t.client?.name || "—"}
+                    </TableCell>
                     <TableCell className="text-sm text-muted-foreground">{t.category?.name || "—"}</TableCell>
                     <TableCell><StatusBadge status={t.status} /></TableCell>
-                    <TableCell className={`text-right font-semibold ${t.type === "INCOME" ? "text-success" : "text-destructive"}`}>
+                    <TableCell className={`text-right font-semibold transition-all duration-300 ${blurClass} ${t.type === "INCOME" ? "text-success" : "text-destructive"}`}>
                       {t.type === "INCOME" ? "+" : "-"}{formatBRL(t.amount)}
                     </TableCell>
                     <TableCell>

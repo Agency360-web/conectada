@@ -1,25 +1,23 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Users, Wallet, Settings, LogOut, FileBarChart,
-  Shield, ClipboardList, FolderKanban, ChevronLeft, ChevronRight, Briefcase, Target, Palette
+  Shield, ClipboardList, ChevronLeft, ChevronRight
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter,
-  useSidebar, SidebarTrigger, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton
+  useSidebar, SidebarTrigger
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { supabase } from "@/integrations/supabase/client";
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { pathname } = useLocation();
-  const { user, signOut, roles, isAdmin, isFinanceiro, isCriacao, isMembro, isComercial, isDesigner } = useAuth();
+  const { user, signOut, roles, isAdmin, isFinanceiro } = useAuth();
 
   const isActive = (url: string) => (url === "/" ? pathname === "/" : pathname.startsWith(url));
 
@@ -27,33 +25,7 @@ export function AppSidebar() {
     .split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase();
 
   const showAdminFinance = isAdmin || isFinanceiro;
-  const showDepartments = isAdmin || isCriacao || isMembro;
-  const showCommercial = isAdmin || isComercial;
   const showSystemMgmt = isAdmin;
-
-  const [criacaoId, setCriacaoId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!user) return;
-    if (isAdmin) {
-      // Admin: busca qualquer departamento (primeiro disponível)
-      supabase
-        .from("departments")
-        .select("id")
-        .limit(1)
-        .single()
-        .then(({ data }) => { if (data) setCriacaoId(data.id); });
-    } else {
-      // Criacao/Designer/Membro: busca o departamento que o usuário pertence
-      supabase
-        .from("department_members")
-        .select("department_id")
-        .eq("user_id", user.id)
-        .limit(1)
-        .single()
-        .then(({ data }) => { if (data) setCriacaoId(data.department_id); });
-    }
-  }, [user, isAdmin]);
 
   return (
     <Sidebar collapsible="icon">
@@ -108,78 +80,6 @@ export function AppSidebar() {
                         <NavLink to="/relatorios">
                           <FileBarChart className="h-4 w-4" />
                           <span>Relatórios</span>
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </CollapsibleContent>
-            </SidebarGroup>
-          </Collapsible>
-        )}
-
-        {(isAdmin || isCriacao || isMembro || isDesigner) && (
-          <Collapsible defaultOpen className="group/collapsible">
-            <SidebarGroup className="py-0">
-              <SidebarGroupLabel asChild className="text-sm font-semibold">
-                <CollapsibleTrigger className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex w-full items-center justify-between cursor-pointer">
-                  Departamento Criativo
-                  <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
-                </CollapsibleTrigger>
-              </SidebarGroupLabel>
-              <CollapsibleContent>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild isActive={pathname === "/departamentos/criativo/dashboard"} tooltip="Dashboard" size="sm" className="text-sm">
-                        <NavLink to="/departamentos/criativo/dashboard">
-                          <Palette className="h-4 w-4" />
-                          <span>Dashboard</span>
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild isActive={pathname.includes("/board") && pathname.includes(criacaoId || "")} tooltip="Projetos / Tarefas" size="sm" className="text-sm">
-                        <NavLink to={criacaoId ? `/departamentos/${criacaoId}/board` : "/departamentos"}>
-                          <FolderKanban className="h-4 w-4" />
-                          <span>Projetos / Tarefas</span>
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </CollapsibleContent>
-            </SidebarGroup>
-          </Collapsible>
-        )}
-
-
-
-        {showCommercial && (
-          <Collapsible defaultOpen className="group/collapsible">
-            <SidebarGroup className="py-0">
-              <SidebarGroupLabel asChild className="text-sm font-semibold">
-                <CollapsibleTrigger className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex w-full items-center justify-between cursor-pointer">
-                  Departamento Comercial
-                  <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
-                </CollapsibleTrigger>
-              </SidebarGroupLabel>
-              <CollapsibleContent>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild isActive={pathname === "/departamentos/comercial/dashboard"} tooltip="Dashboard" size="sm" className="text-sm">
-                        <NavLink to="/departamentos/comercial/dashboard">
-                          <Target className="h-4 w-4" />
-                          <span>Dashboard</span>
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild isActive={pathname === "/departamentos/comercial"} tooltip="Pipeline / Kanban" size="sm" className="text-sm">
-                        <NavLink to="/departamentos/comercial">
-                          <FolderKanban className="h-4 w-4" />
-                          <span>Pipeline / Kanban</span>
                         </NavLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
