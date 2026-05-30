@@ -111,8 +111,9 @@ export default function Users() {
 
     if (!confirm("Tem certeza que deseja excluir este usuário? Esta ação removerá o perfil e as permissões.")) return;
 
-    await supabase.from("user_roles").delete().eq("user_id", targetId);
-    const { error } = await supabase.from("profiles").delete().eq("id", targetId);
+    const { error } = await supabase.rpc("delete_user_by_admin", {
+      target_user_id: targetId,
+    });
 
     if (error) {
       toast.error(error.message);

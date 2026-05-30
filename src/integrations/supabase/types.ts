@@ -645,6 +645,12 @@ export type Database = {
     }
     Functions: {
       can_write: { Args: { _user_id: string }; Returns: boolean }
+      delete_user_by_admin: {
+        Args: {
+          target_user_id: string
+        }
+        Returns: void
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
