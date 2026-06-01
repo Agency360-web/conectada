@@ -1,6 +1,6 @@
 create table public.client_whatsapp_instances (
   id uuid default gen_random_uuid() primary key,
-  client_id uuid not null references public.clients(id) on delete cascade unique,
+  client_id uuid not null references public.clients(id) on delete cascade,
   instance_name text not null,
   instance_token text not null,
   server_url text not null,
