@@ -10,7 +10,6 @@ import { Copy, Save, Trash2, Smartphone } from "lucide-react";
 export function ClientWhatsAppIntegration({ clientId }: { clientId: string }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [instances, setInstances] = useState<any[]>([]);
   const [selectedInstance, setSelectedInstance] = useState<any>(null);
   const [formData, setFormData] = useState({
     instance_name: "",
@@ -18,36 +17,25 @@ export function ClientWhatsAppIntegration({ clientId }: { clientId: string }) {
     server_url: "https://free.uazapi.com"
   });
 
+  // Load a single instance (if any)
   const load = async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("client_whatsapp_instances")
       .select("*")
-      .eq("client_id", clientId);
-    if (error) {
+      .eq("client_id", clientId)
+      .single();
+    if (error && error.code !== "PGRST116") {
       toast.error(error.message);
       setLoading(false);
       return;
     }
-    setInstances(data);
-    // If editing an existing instance, preload its data
-    if (selectedInstance) {
-      const inst = data.find((i) => i.id === selectedInstance.id);
-      if (inst) {
-        setFormData({
-          instance_name: inst.instance_name,
-          instance_token: inst.instance_token,
-          server_url: inst.server_url
-        });
-        setSelectedInstance(inst);
-      }
-    } else {
-      // default to first instance for editing convenience
-      setSelectedInstance(null);
+    if (data) {
+      setSelectedInstance(data);
       setFormData({
-        instance_name: "",
-        instance_token: "",
-        server_url: "https://free.uazapi.com"
+        instance_name: data.instance_name,
+        instance_token: data.instance_token,
+        server_url: data.server_url
       });
     }
     setLoading(false);
@@ -60,9 +48,6 @@ export function ClientWhatsAppIntegration({ clientId }: { clientId: string }) {
   const handleSave = async () => {
     if (!formData.instance_name || !formData.instance_token || !formData.server_url) {
       return toast.error("Preencha todos os campos.");
-    }
-    if (instances.length >= 3 && !selectedInstance) {
-      return toast.error("Cada cliente pode ter no máximo 3 instâncias de WhatsApp.");
     }
     setSaving(true);
     try {
@@ -94,7 +79,6 @@ export function ClientWhatsAppIntegration({ clientId }: { clientId: string }) {
   const handleDelete = async () => {
     if (!selectedInstance?.id) return;
     if (!confirm("Tem certeza que deseja remover esta instância? O link de conexão deixará de funcionar.")) return;
-    
     try {
       const { error } = await supabase
         .from("client_whatsapp_instances")
@@ -114,9 +98,7 @@ export function ClientWhatsAppIntegration({ clientId }: { clientId: string }) {
     }
   };
 
-  const publicLink = selectedInstance 
-    ? `${window.location.origin}/connect/${selectedInstance.connection_token}` 
-    : "";
+  const publicLink = selectedInstance ? `${window.location.origin}/connect/${selectedInstance.connection_token}` : "";
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(publicLink);
@@ -127,50 +109,12 @@ export function ClientWhatsAppIntegration({ clientId }: { clientId: string }) {
 
   return (
     <>
-      {/* List existing instances */}
-      <div className="grid gap-6">
-        {instances.map((inst) => (
-          <Card key={inst.id} className={selectedInstance?.id === inst.id ? "border-primary" : ""}>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Smartphone className="h-5 w-5 text-green-500" />
-                  {inst.instance_name || "Instância"}
-                </div>
-                <Button variant="outline" size="sm" onClick={() => {
-                  setSelectedInstance(inst);
-                  setFormData({
-                    instance_name: inst.instance_name,
-                    instance_token: inst.instance_token,
-                    server_url: inst.server_url
-                  });
-                }}>
-                  Editar
-                </Button>
-              </CardTitle>
-            </CardHeader>
-          </Card>
-        ))}
-        {instances.length < 3 && (
-          <Button variant="secondary" onClick={() => {
-            setSelectedInstance(null);
-            setFormData({
-              instance_name: "",
-              instance_token: "",
-              server_url: "https://free.uazapi.com"
-            });
-          }}>
-            + Nova Instância
-          </Button>
-        )}
-      </div>
-
-      {/* Form for selected / new instance */}
+      {/* Form for configuring a single instance */}
       <Card className="mt-6">
         <CardHeader>
           <CardTitle className="font-display text-lg flex items-center gap-2">
             <Smartphone className="h-5 w-5 text-green-500" />
-            {selectedInstance ? "Editar Instância" : "Nova Instância"}
+            {selectedInstance ? "Configurações da Instância" : "Configurar Nova Instância"}
           </CardTitle>
           <CardDescription>
             Configure os dados desta instância para gerar o QR Code via link seguro.
