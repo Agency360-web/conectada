@@ -18,6 +18,7 @@ import ActivityLogs from "@/pages/ActivityLogs";
 import Departments from "@/pages/Departments";
 import DepartmentBoard from "@/pages/DepartmentBoard";
 import BoardRedirect from "@/pages/BoardRedirect";
+import WhatsAppConnect from "@/pages/WhatsAppConnect";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/connect/:token" element={<WhatsAppConnect />} />
             <Route element={<RoleBasedRoute><AppLayout /></RoleBasedRoute>}>
 
               {/* Dashboard - apenas Admin e Financeiro */}

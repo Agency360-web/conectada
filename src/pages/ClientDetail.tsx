@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
+import { ClientWhatsAppIntegration } from "@/components/ClientWhatsAppIntegration";
 
 export default function ClientDetail() {
   const { id } = useParams<{ id: string }>();
@@ -247,6 +248,10 @@ export default function ClientDetail() {
         </Card>
       </div>
 
+      <div className="grid gap-6">
+
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
@@ -337,6 +342,9 @@ export default function ClientDetail() {
             )}
           </CardContent>
         </Card>
+      </div>
+      <div className="grid gap-6">
+        <ClientWhatsAppIntegration clientId={id!} />
       </div>
 
       <ClientFormDialog open={editOpen} onOpenChange={setEditOpen} onSaved={load} client={client} />

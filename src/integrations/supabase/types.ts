@@ -229,6 +229,47 @@ export type Database = {
         }
         Relationships: []
       }
+      client_whatsapp_instances: {
+        Row: {
+          client_id: string
+          connection_token: string
+          created_at: string
+          id: string
+          instance_name: string
+          instance_token: string
+          server_url: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          connection_token?: string
+          created_at?: string
+          id?: string
+          instance_name: string
+          instance_token: string
+          server_url: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          connection_token?: string
+          created_at?: string
+          id?: string
+          instance_name?: string
+          instance_token?: string
+          server_url?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_whatsapp_instances_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       department_members: {
         Row: {
           department_id: string
